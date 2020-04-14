@@ -1,0 +1,31 @@
+version: "3"
+
+services:
+  spot_database:
+    container_name: spot_database
+    image: postgres:12-alpine
+    volumes: [ ".app_data/postgres/data:/var/lib/postgresql/data" ]
+    ports: [ "5432:5432" ]
+    networks: [ raw_net ]
+    env_file: [ ".env" ]
+    logging:
+      driver: "none"
+
+  spot_app:
+    image: spot_app:latest
+    container_name: spot_app
+    build: .
+    command: sh scripts/start
+    volumes: [ ".:/spot", ".app_data/gems:/.app_data/gems" ]
+    ports: [ "3000:3000" ]
+    networks: [ raw_net ]
+    env_file: [ ".env" ]
+    links: [ spot_database ]
+    depends_on: [ spot_database ]
+
+volumes:
+  .app_data:
+
+networks:
+  raw_net:
+    driver: bridge
